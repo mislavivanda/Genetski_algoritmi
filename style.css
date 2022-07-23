@@ -1,0 +1,125 @@
+body{
+    color:#4b4b5a;
+    font-family: 'Nunito', sans-serif;
+}
+*{
+    box-sizing: border-box;
+}
+.main-container{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 50px;
+}
+.content-block{
+    width: 100%;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(246, 246, 246);
+    margin: 1.5rem;
+    padding: 10px;
+}
+.content-block h2{
+    margin-bottom: 10px;
+    margin-top:0px;
+}
+.parameters-container{
+    width: 100%;
+    display:flex;
+    justify-content: space-evenly;
+    align-items: center;
+    font-size: 1rem;
+    background-color: white;
+}
+.parameters-container .generation-parameter{
+    display:flex;
+    align-items: center;
+    padding:5px;
+}
+.generation-parameter div:first-child{
+    margin-right: 10px;
+    font-weight: bold;
+}
+.car-parameter-container{
+    width:100%;
+    display:flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding:20px;
+    padding-top:0px;
+}
+.car-parameter-container code{
+    width: 100%;
+    font-family: monospace;
+    color:black;
+    line-height: 20px;
+    padding:5px;
+    background-color: white;
+}
+.car-parameter-container .footer{
+    font-size: 0.875rem;
+    padding:10px;
+    padding-left: 0px;
+    display:flex;
+    align-items: center;
+}
+.car-parameter-container .footer .parameter{
+    display:flex;
+    align-items: center;
+    margin-right: 15px;
+}
+.car-parameter-container .footer .parameter div:first-child{
+    font-weight: bold;
+    margin-right: 5px;;
+}
+.mutation-selection-container{
+    width:100%;
+    display:flex;
+    justify-content: space-evenly;
+    padding:10px;
+    background-color: rgb(246, 246, 246);
+}
+/* .select-form-control{
+    background-color: white;
+} */
+.select-form-control h2{
+    margin-bottom: 10px;
+    margin-top:0px;
+}
+.select-container{
+    position: relative;
+    display:inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: 1000px;
+    background-color: #EFEFEF;
+}
+.select-container + span{
+    font-weight: bold;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+.select-dropdown{
+    position:absolute;
+    width:max-content;
+    top:3rem;
+    left:0px;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    border-radius: 0.375rem;
+    background-color: white;
+    opacity: 0;
+    transition: opacity 500 ease-in-out;
+}
+.select-dropdown-item{
+    width:100%;
+    padding: 0.5rem 1.25rem;
+    transition: all duration-200 ease-in-out;
+}
+.select-dropdown-item:hover{
+    background-color: rgb(246 246 247);
+}
+#mutation-chevron-right:hover{
+    cursor: pointer;
+}
