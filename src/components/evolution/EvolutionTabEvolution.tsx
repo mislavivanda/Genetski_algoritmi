@@ -98,17 +98,6 @@ function EvolutionTabEvolution() {
   const batchVersion = generateWorldVersion(generationIndex, carsBatchIndex);
   const generationLifetimeMs = generationLifetime * SECOND;
 
-  const onCommonStateReset = () => {
-    setGeneration([]);
-    setCarsBatch([]);
-    setCars({});
-    carsRef.current = {};
-    carsLossRef.current = [{}];
-    genomeLossRef.current = [{}];
-    setLossHistory([]);
-    setAvgLossHistory([]);
-  };
-
   const onCarLossUpdate = (licensePlate: CarLicencePlateType, loss: number) => {
     if (generationIndex === null) {
       return;
@@ -572,13 +561,6 @@ function EvolutionTabEvolution() {
           carsPosition={dynamicCarsPosition}
         />
       </World>
-
-{/*       <Block marginTop="30px">
-        <EvolutionCheckpointSaver
-          onRestoreFromCheckpoint={onRestoreFromCheckpoint}
-          onCheckpointToFile={onCheckpointToFile}
-        />
-      </Block> */}
     </Block>
   );
 }
