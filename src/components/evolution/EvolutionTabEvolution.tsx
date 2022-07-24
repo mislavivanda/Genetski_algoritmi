@@ -264,21 +264,21 @@ function EvolutionTabEvolution() {
 
   const carFitnessFunction =
     (generationIndex: number) =>
-    (genome: Genome): number => {
-      const genomeKey = genome.join('')
-      if (
-        generationIndex === null ||
-        !genomeLossRef.current[generationIndex] ||
-        typeof genomeLossRef.current[generationIndex][genomeKey] !== 'number'
-      ) {
-        throw new Error('Fitness value for specified genome is undefined')
+      (genome: Genome): number => {
+        const genomeKey = genome.join('')
+        if (
+          generationIndex === null ||
+          !genomeLossRef.current[generationIndex] ||
+          typeof genomeLossRef.current[generationIndex][genomeKey] !== 'number'
+        ) {
+          throw new Error('Fitness value for specified genome is undefined')
+        }
+        const loss = genomeLossRef.current[generationIndex][genomeKey]
+        if (typeof loss !== 'number') {
+          throw new Error('Loss value is not a number')
+        }
+        return carLossToFitness(loss, FITNESS_ALPHA)
       }
-      const loss = genomeLossRef.current[generationIndex][genomeKey]
-      if (typeof loss !== 'number') {
-        throw new Error('Loss value is not a number')
-      }
-      return carLossToFitness(loss, FITNESS_ALPHA)
-    }
 
   const isValidGenerationFromStorage = (generation: Generation | null): boolean => {
     return !!(generation && generation.length === generationSize && generation[0].length === GENOME_LENGTH)
@@ -437,7 +437,7 @@ function EvolutionTabEvolution() {
     badSimulationRetriesNum > 0 &&
     lossHistory.length > 1 &&
     lossHistory[lossHistory.length - 1] >
-      (lossHistory[lossHistory.length - 2] * BAD_SIMULATION_MIN_LOSS_INCREASE_PERCENTAGE) / 100
+    (lossHistory[lossHistory.length - 2] * BAD_SIMULATION_MIN_LOSS_INCREASE_PERCENTAGE) / 100
 
   const onBatchLifetimeEnd = () => {
     console.log('Kraj trenutne grupe')
@@ -491,7 +491,6 @@ function EvolutionTabEvolution() {
   useEffect(() => {
     //component did mount -> pocni zapocni evoluciju
     startEvolution()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Once generation index is changed we need to create (or mate) a new generation.
@@ -505,7 +504,6 @@ function EvolutionTabEvolution() {
       mateExistingGeneration()
     }
     //}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generationIndex, worldIndex])
 
   // Once generation is changed we need to create cars.
@@ -513,7 +511,6 @@ function EvolutionTabEvolution() {
     //KREIRANJE NOVIH AUTA IZ NOVE GENERACIJE
     console.log('Generation use efect')
     createCarsFromGeneration()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generation])
 
   // Once the cars batch index is updated we need to generate a cars batch.
@@ -523,7 +520,6 @@ function EvolutionTabEvolution() {
     if (updateScene) {
       generateNextCarsBatch()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [carsBatchIndex])
 
   // Once the new cars batch is created we need to start generation timer.
@@ -539,7 +535,6 @@ function EvolutionTabEvolution() {
       //use effect clenaup timer
       cancelBatchTimer()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [carsBatch])
 
   return (

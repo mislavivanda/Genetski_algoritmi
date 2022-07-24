@@ -89,11 +89,11 @@ function Car(props: CarProps) {
     collisionFilterGroup,
     collisionFilterMask,
     bodyProps = {},
-    onCollide = () => {},
-    onCarReady = () => {},
-    onCarDestroy = () => {},
-    onSensors = () => {},
-    onMove = () => {},
+    onCollide = () => { },
+    onCarReady = () => { },
+    onCarDestroy = () => { },
+    onSensors = () => { },
+    onMove = () => { },
     car = { licencePlate: '', generationIndex: 0, genomeIndex: 0 },
     performanceBoost = false,
   } = props;
@@ -241,7 +241,6 @@ function Car(props: CarProps) {
       wheelsNum: wheelsRef.current.length,
     });
     return onUnmount;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!onMoveThrottledRef.current) {
@@ -290,7 +289,7 @@ function Car(props: CarProps) {
     // @ts-ignore
     wheels[brWheelIndex].current.getWorldPosition(wheelsPositionRef.current.bl);
 
-    const {fl, fr, bl, br} = wheelsPositionRef.current;
+    const { fl, fr, bl, br } = wheelsPositionRef.current;
     const wheelPositions: RectanglePoints = {
       fl: fl.toArray(),
       fr: fr.toArray(),
@@ -322,7 +321,7 @@ function Car(props: CarProps) {
     <span>
       Loss:
       {' '}
-      <span style={{color: distanceColor, fontWeight: 'bold'}}>
+      <span style={{ color: distanceColor, fontWeight: 'bold' }}>
         {formatLossValue(carLoss)}
       </span>
     </span>
