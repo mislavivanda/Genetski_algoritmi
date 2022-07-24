@@ -1,18 +1,18 @@
-import React from 'react';
-import { Line } from '@react-three/drei';
-import { PARKING_SPOT_INNER_CORNERS, PARKING_SPOT_OUTER_CORNERS } from '../constants/parking';
+import React from 'react'
+import { Line } from '@react-three/drei'
+import { PARKING_SPOT_INNER_CORNERS, PARKING_SPOT_OUTER_CORNERS } from '../constants/parking'
 
 type ParkingSpotProps = {
-  color?: string,
-};
+  color?: string
+}
 
 // @TODO: Parking lot size should be a configurable from the outside.
 // Move this constants to the component parameters.
 
-const innerLineVisible = false;
+const innerLineVisible = false
 
 function ParkingSpot(props: ParkingSpotProps) {
-  const { color = 'yellow' } = props;
+  const { color = 'yellow' } = props
 
   const innerLineComponent = innerLineVisible ? (
     <Line
@@ -24,7 +24,7 @@ function ParkingSpot(props: ParkingSpotProps) {
       lineWidth={4}
       dashed={false}
     />
-  ) : null;
+  ) : null
 
   return (
     <>
@@ -39,7 +39,7 @@ function ParkingSpot(props: ParkingSpotProps) {
       />
       {innerLineComponent}
     </>
-  );
+  )
 }
 
-export default ParkingSpot;
+export default ParkingSpot

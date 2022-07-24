@@ -1,27 +1,27 @@
-import { getSearchParam } from './url';
+import { getSearchParam } from './url'
 
-const LOG_SEARCH_PARAM_NAME = 'debug';
+const LOG_SEARCH_PARAM_NAME = 'debug'
 
-const logToConsole = !!getSearchParam(LOG_SEARCH_PARAM_NAME);
+const logToConsole = !!getSearchParam(LOG_SEARCH_PARAM_NAME)
 
 type LoggerParams = {
-  context: string,
-};
+  context: string
+}
 
-type LoggerCallback = (...params: any[]) => void;
+type LoggerCallback = (...params: any[]) => void
 
 type Logger = {
-  info: LoggerCallback,
-  warn: LoggerCallback,
-  error: LoggerCallback,
-};
+  info: LoggerCallback
+  warn: LoggerCallback
+  error: LoggerCallback
+}
 
 export const loggerBuilder = (params: LoggerParams): Logger => {
-  const { context } = params;
+  const { context } = params
 
   const info: LoggerCallback = (message, ...optionalParams) => {
     if (!logToConsole) {
-      return;
+      return
     }
     console.log(
       `%c${context}`,
@@ -29,12 +29,12 @@ export const loggerBuilder = (params: LoggerParams): Logger => {
       '→',
       message,
       ...optionalParams
-    );
-  };
+    )
+  }
 
   const warn: LoggerCallback = (message, ...optionalParams) => {
     if (!logToConsole) {
-      return;
+      return
     }
     console.info(
       `%c${context}`,
@@ -42,15 +42,15 @@ export const loggerBuilder = (params: LoggerParams): Logger => {
       '→',
       message,
       ...optionalParams
-    );
-  };
+    )
+  }
 
   const error: LoggerCallback = (message, ...optionalParams) => {
     if (!logToConsole) {
-      return;
+      return
     }
-    console.error(context, message, ...optionalParams);
-  };
+    console.error(context, message, ...optionalParams)
+  }
 
-  return { info, warn, error };
-};
+  return { info, warn, error }
+}

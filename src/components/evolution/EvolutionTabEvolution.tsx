@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import _ from 'lodash'
 import { Block } from 'baseui/block'
 import { useSnackbar, DURATION } from 'baseui/snackbar'
@@ -7,17 +7,20 @@ import { BiUpload } from 'react-icons/all'
 import { createGeneration, Generation, Genome, Percentage, Probability, select } from '../../libs/genetic'
 import { CarsLossType } from './PopulationTable'
 import { CarLicencePlateType, CarsType, CarType } from '../world/types/car'
-import { carLossToFitness, GENOME_LENGTH } from '../../libs/carGenetic'
+import { carLossToFitness, GENOME_LENGTH, decodeGenome } from '../../libs/carGenetic'
 import {
   generateWorldVersion,
   generationToCars,
   loadGenerationFromStorage,
   saveGenerationToStorage,
+  formatLossValue,
+  formatCoefficient
 } from './utils/evolution'
 import { getBooleanSearchParam, getFloatSearchParam, getIntSearchParam } from '../../utils/url'
 import { loggerBuilder } from '../../utils/logger'
 import ParkingAutomatic from '../world/parkings/ParkingAutomatic'
 import World from '../world/World'
+import Timer from './Timer'
 import {
   BAD_SIMULATION_BATCH_INDEX_CHECK,
   BAD_SIMULATION_MIN_LOSS_INCREASE_PERCENTAGE,
@@ -27,7 +30,6 @@ import {
 } from './constants/evolution'
 import { DynamicCarsPosition } from '../world/constants/cars'
 import { DYNAMIC_CARS_POSITION_FRONT } from '../world/constants/cars'
-import { WORLD_CONTAINER_HEIGHT } from '../world/constants/world'
 //EVOLUTION PARAMS
 const DEFAULT_PERFORMANCE_BOOST: boolean = false
 const DEFAULT_GENERATION_SIZE: number = 100
@@ -55,6 +57,7 @@ function EvolutionTabEvolution() {
 
   const [isPaused, setIsPaused] = useState<boolean>(false)
   const [updateScene, setUpdateScene] = useState<boolean>(true)
+
   const [performanceBoost, setPerformanceBoost] = useState<boolean>(
     getBooleanSearchParam(PERFORMANCE_BOOST_URL_PARAM, DEFAULT_PERFORMANCE_BOOST)
   )
@@ -78,6 +81,9 @@ function EvolutionTabEvolution() {
   )
   const [carsBatchIndex, setCarsBatchIndex] = useState<number | null>(null)
   const carsRef = useRef<CarsType>({})
+
+  const [bestGenome, setBestGenome] = useState<Genome | null>(null);
+  const [minLoss, setMinLoss] = useState<number | null>(null);
 
   const [dynamicCarsPosition] = useState<DynamicCarsPosition>(DYNAMIC_CARS_POSITION_FRONT)
 
@@ -136,72 +142,38 @@ function EvolutionTabEvolution() {
 
   const syncBestGenome = (): string | null | undefined => {
     if (generationIndex === null) {
-      return
+      return;
     }
 
-    const generationLoss: CarsLossType = carsLossRef.current[generationIndex]
+    const generationLoss: CarsLossType = carsLossRef.current[generationIndex];
     if (!generationLoss) {
-      return
+      return;
     }
 
-    let bestCarLicensePlate: CarLicencePlateType | null = null
-    let minLoss: number = Infinity
-    let bestGenomeIndex: number = -1
+    let bestCarLicensePlate: CarLicencePlateType | null = null;
+    let minLoss: number = Infinity;
+    let bestGenomeIndex: number = -1;
 
     Object.keys(generationLoss).forEach((licencePlate: CarLicencePlateType) => {
-      const carLoss: number | null = generationLoss[licencePlate]
+      const carLoss: number | null = generationLoss[licencePlate];
       if (carLoss === null) {
-        return
+        return;
       }
       if (carLoss < minLoss) {
-        minLoss = carLoss
-        bestCarLicensePlate = licencePlate
-        bestGenomeIndex = cars[licencePlate].genomeIndex
+        minLoss = carLoss;
+        bestCarLicensePlate = licencePlate;
+        bestGenomeIndex = cars[licencePlate].genomeIndex;
       }
-    })
+    });
 
     if (bestGenomeIndex === -1) {
-      return
+      return;
     }
 
-    return bestCarLicensePlate
-  }
+    setMinLoss(minLoss);
+    setBestGenome(generation[bestGenomeIndex]);
 
-  const syncSecondBestGenome = (bestLicensePlateSoFar: string | null | undefined): string | null | undefined => {
-    if (generationIndex === null || !bestLicensePlateSoFar) {
-      return
-    }
-
-    const generationLoss: CarsLossType = carsLossRef.current[generationIndex]
-    if (!generationLoss) {
-      return
-    }
-
-    let secondBestCarLicensePlate: CarLicencePlateType | null = null
-    let secondMinLoss: number = Infinity
-    let secondBestGenomeIndex: number = -1
-
-    Object.keys(generationLoss).forEach((licencePlate: CarLicencePlateType) => {
-      // Skipping the best car genome.
-      if (licencePlate === bestLicensePlateSoFar) {
-        return
-      }
-      const carLoss: number | null = generationLoss[licencePlate]
-      if (carLoss === null) {
-        return
-      }
-      if (carLoss < secondMinLoss) {
-        secondMinLoss = carLoss
-        secondBestCarLicensePlate = licencePlate
-        secondBestGenomeIndex = cars[licencePlate].genomeIndex
-      }
-    })
-
-    if (secondBestGenomeIndex === -1) {
-      return
-    }
-
-    return secondBestCarLicensePlate
+    return bestCarLicensePlate;
   }
 
   const syncLossHistory = () => {
@@ -447,7 +419,6 @@ function EvolutionTabEvolution() {
     logger.info(`Batch #${carsBatchIndex} lifetime ended`)
     syncLossHistory()
     const bestLicensePlate = syncBestGenome()
-    syncSecondBestGenome(bestLicensePlate)
     let nextBatchIndex = carsBatchIndex + 1
 
     // Retrying logic
@@ -474,7 +445,6 @@ function EvolutionTabEvolution() {
     }
     setCarsBatchIndex(nextBatchIndex)
   }
-
   const countDownBatchLifetime = (onLifetimeEnd: () => void) => {
     if (carsBatchIndex === null) {
       return
@@ -555,39 +525,152 @@ function EvolutionTabEvolution() {
           {isPaused ? 'PLAY' : 'PAUSE'}
         </div>
       </div>
-      {/*       <EvolutionAnalytics
-        mutationProbability={mutationProbability}
-        onMutationProbabilityChange={onMutationProbabilityChange}
-        longLivingChampionsPercentage={longLivingChampionsPercentage}
-        generationIndex={generationIndex} //TRIBA
-        carsBatchIndex={carsBatchIndex} //triba -> SVAKA GENERACIJA IMA VISE BATCHEVA?
-        totalBatches={carsBatchesTotal}
-        worldIndex={worldIndex}
-        needToRetry={needToRetry}
-        generationLifetimeMs={generationLifetimeMs} //TRIBA
-        generationSize={generationSize} //  TRIBA
-        performanceBoost={performanceBoost}
-        carsBatchSize={carsBatchSize}
-        generationLifetime={generationLifetime} //TRIBA
-        batchVersion={batchVersion}
-        onGenerationSizeChange={onGenerationSizeChange}
-        onBatchSizeChange={onBatchSizeChange}
-        onGenerationLifetimeChange={onGenerationLifetimeChange}
-        onLongLivingChampionsPercentageChange={onLongLivingChampionsPercentageChange}
-        onPerformanceBoost={onPerformanceBoost}
-        onReset={onReset}
-        lossHistory={lossHistory}
-        avgLossHistory={avgLossHistory}
-        cars={cars}
-        carsInProgress={carsInProgress}
-        carsLoss={carsLoss}
-        bestGenome={bestGenome}
-        bestCarLicencePlate={bestCarLicencePlate}
-        minLoss={minLoss}
-        secondBestGenome={secondBestGenome}
-        secondBestCarLicencePlate={secondBestCarLicencePlate}
-        secondMinLoss={secondMinLoss}
-      /> */}
+      <div className="content-block">
+        <h2>Generation parameters</h2>
+        <div className="parameters-container">
+          <div className="generation-parameter">
+            <div>Generation:</div>
+            <div>{generationIndex !== null ? generationIndex + 1 : null}</div>
+          </div>
+          <div className="generation-parameter">
+            <div>Generation size:</div>
+            <div>{generationSize}</div>
+          </div>
+          <div className="generation-parameter">
+            <div>Group:</div>
+            <div>{`${carsBatchIndex !== null ? carsBatchIndex + 1 : null}/${carsBatchesTotal}`}</div>
+          </div>
+          <div className="generation-parameter">
+            <div>Group size</div>
+            <div>{carsBatchSize}</div>
+          </div>
+          <div className="generation-parameter">
+            <div>Group lifetime left:</div>
+            <div><Timer timeout={generationLifetimeMs} version={batchVersion} /></div>
+          </div>
+        </div>
+      </div>
+      <div className="content-block">
+        <h2>Algorithm parameters</h2>
+        <div className="parameters-container">
+          <div className="generation-parameter">
+            <div>Mutation probability:</div>
+            <div>{`${mutationProbability * 100}%`}</div>
+          </div>
+          <div className="generation-parameter">
+            <div>Elitism rate:</div>
+            <div>{`${longLivingChampionsPercentage}%`}</div>
+          </div>
+          <div className="generation-parameter">
+            <div>Time elapsed:</div>
+            <div><Timer /></div>
+          </div>
+        </div>
+      </div>
+      <div className="mutation-selection-container">
+        <div className="select-form-control">
+          <h2>Mutation type</h2>
+          <div className="select-container">
+            <span id="mutation-select-value">First mutation</span>
+            <div id="mutation-chevron-right">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={24}
+                height={24}
+                view-box="0 0 24 24"
+                fill="none"
+                stroke="#141414"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+            <div id="mutation-select-dropdown" className="select-dropdown">
+              <div className="select-dropdown-item">First mutation</div>
+              <div className="select-dropdown-item">Second mutation</div>
+              <div className="select-dropdown-item">Third mutation</div>
+            </div>
+          </div>
+        </div>
+        <div className="select-form-control">
+          <h2>Selection type</h2>
+          <div className="select-container">
+            <span id="mutation-select-value">First selection</span>
+            <div id="mutation-chevron-right">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={24}
+                height={24}
+                view-box="0 0 24 24"
+                fill="none"
+                stroke="#141414"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+            <div id="mutation-select-dropdown" className="select-dropdown">
+              <div className="select-dropdown-item">First selection</div>
+              <div className="select-dropdown-item">Second selection</div>
+              <div className="select-dropdown-item">Third selection</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="content-block">
+        <h2>Best car from generation</h2>
+        <div className="car-parameter-container">
+          <h3>Car genome</h3>
+          <code >{(bestGenome || []).join(' ')}</code>
+          <div className="footer">
+            <div className="parameter">
+              <div>Number of genes:</div>
+              <div>180</div>
+            </div>
+            <div className="parameter">
+              <div>Min loss:</div>
+              <div>{formatLossValue(minLoss)}</div>
+            </div>
+            <div className="parameter">
+              <div>Fitness:</div>
+              <div>{minLoss ? formatLossValue(carLossToFitness(minLoss, FITNESS_ALPHA)) : 0}</div>
+            </div>
+          </div>
+        </div>
+        <div className="car-parameter-container">
+          <h3>Engine formula coefficents</h3>
+          <code>{(decodeGenome((bestGenome) ? bestGenome : [])?.engineFormulaCoefficients || []).map((coefficient: number) => formatCoefficient(coefficient, true)).join(', ')}</code>
+          <div className="footer">
+            <div className="parameter">
+              <div>
+                Coefficients for engine multivariate linear formula. Given in order x<sub>8</sub>, x<sub>7</sub>, ...
+                , x<sub>0</sub>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="car-parameter-container">
+          <h3>Wheel formula coefficents</h3>
+          <code id="wheel-formula">{(decodeGenome((bestGenome) ? bestGenome : [])?.wheelsFormulaCoefficients || []).map((coefficient: number) => formatCoefficient(coefficient, true)).join(', ')}</code>
+          <div className="footer">
+            <div className="parameter">
+              <div>
+                Coefficients for engine multivariate linear formula. Given in order x<sub>8</sub>, x<sub>7</sub>, ...
+                , x<sub>0</sub>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/*       onGenerationSizeChange={onGenerationSizeChange}
+      onBatchSizeChange={onBatchSizeChange}
+      onGenerationLifetimeChange={onGenerationLifetimeChange}
+      onLongLivingChampionsPercentageChange={onLongLivingChampionsPercentageChange}
+      onMutationProbabilityChange={onMutationProbabilityChange} */}
     </Block>
   )
 }

@@ -20,20 +20,11 @@
     ],
     "settings": {
         "react": {
-          "version": "detect"
+            "version": "detect"
         }
     },
     "rules": {
         "react/display-name": "off",
         "react/react-in-jsx-scope": "off"
-/*         "import/prefer-default-export": "off",
-        "import/extensions": "off",
-        "import/no-unresolved": "off",
-        "linebreak-style": "off",
-        "react/react-in-jsx-scope": "off",
-        "no-use-before-define": "off",
-        "semi": "off",
-        "max-len": "off",
-        "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }] */
     }
 }

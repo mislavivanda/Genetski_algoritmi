@@ -1,9 +1,9 @@
-import React from 'react';
-import { usePlane, PlaneProps, } from '@react-three/cannon';
-import { NumVec2 } from '../../../types/vectors';
+import React from 'react'
+import { usePlane, PlaneProps } from '@react-three/cannon'
+import { NumVec2 } from '../../../types/vectors'
 
 function Ground(props: PlaneProps) {
-  const args: NumVec2 = [200, 200];
+  const args: NumVec2 = [200, 200]
   const [ref] = usePlane(() => ({
     type: 'Static',
     rotation: [-Math.PI / 2, 0, 0],
@@ -18,4 +18,4 @@ function Ground(props: PlaneProps) {
   )
 }
 
-export default Ground;
+export default Ground
