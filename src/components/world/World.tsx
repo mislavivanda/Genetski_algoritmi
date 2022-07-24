@@ -15,6 +15,7 @@ import { getSearchParam } from '../../utils/url';
 
 type WorldProps = {
   children: React.ReactNode,
+  updateScene: boolean,
   withJoystickControl?: boolean,
   withKeyboardControl?: boolean,
   version?: string,
@@ -38,6 +39,7 @@ const STAT_SEARCH_PARAM_NAME = 'debug';
 function World(props: WorldProps) {
   const {
     children,
+    updateScene,
     withJoystickControl = false,
     withKeyboardControl = false,
     version = '0',
@@ -57,6 +59,7 @@ function World(props: WorldProps) {
       alignItems: 'center',
       position: 'absolute',
       width: '100%',
+      height: `${WORLD_CONTAINER_HEIGHT}px`,
       boxSizing: 'border-box',
       borderStyle: 'dashed',
       borderColor: 'rgb(220, 220, 220)',
@@ -66,7 +69,14 @@ function World(props: WorldProps) {
       borderTopWidth: 0,
     }}>
       <FadeIn>
-        <WorldSpinner />
+      <div style={{  
+        width: '30px',
+        height: '30px',
+        borderLeftWidth: '6px',
+        borderRightWidth: '6px',
+        borderTopWidth: '6px',
+        borderBottomWidth: '6px',
+        borderTopColor: 'black',}}/>
       </FadeIn>
     </div>
   );
@@ -84,11 +94,18 @@ function World(props: WorldProps) {
   const environment = performanceBoost ? null : (
     <Environment background={false} preset={'night'} />
   );
-
   return (
-    <Block position="relative" overflow="hidden" display="block" height={`${WORLD_CONTAINER_HEIGHT}px`}>
+    <div style={{position:"relative"}}>
       {preLoader}
-      <WorldContainer>
+      {
+        (!updateScene)?
+        (<div className="pause-info-panel" style={{height: WORLD_CONTAINER_HEIGHT, lineHeight: `${WORLD_CONTAINER_HEIGHT}px`}}>
+        PAUSED
+      </div>)
+      :
+      null
+      }
+      <div style={{height: WORLD_CONTAINER_HEIGHT}}>
         <Canvas shadows key={version}>
           <PerspectiveCamera
             makeDefault
@@ -126,20 +143,12 @@ function World(props: WorldProps) {
           {/* @see: https://docs.pmnd.rs/drei/performance/adaptive-dpr */}
           <AdaptiveDpr pixelated />
         </Canvas>
-      </WorldContainer>
+      </div>
       {joystickController}
       {keyboardController}
       {stats}
-    </Block>
+    </div>
   );
 }
-
-const WorldContainer = styled('div', {
-  height: `${WORLD_CONTAINER_HEIGHT}px`,
-  boxSizing: 'border-box',
-  borderStyle: 'dashed',
-  borderColor: 'rgb(220, 220, 220)',
-  borderWidth: 0,
-});
 
 export default World;

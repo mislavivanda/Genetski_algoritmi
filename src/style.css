@@ -126,3 +126,26 @@ body{
 #mutation-chevron-right:hover{
     cursor: pointer;
 }
+.button{
+    display:inline-flex;
+    align-items: center;
+    text-align: center;
+    margin: 0.5rem 0;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    color:white;
+    background-color: green;
+}
+.button:hover{
+    cursor:pointer;
+}
+.pause-info-panel{
+    position:absolute;
+    top:0px;
+    left:0px;
+    width:100%;
+    text-align: center;
+    font-size: 2rem;
+    color:red;
+    z-index: 1;
+}

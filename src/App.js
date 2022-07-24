@@ -21,6 +21,14 @@ function App() {
           <div>100</div>
         </div>
         <div className="generation-parameter">
+          <div>Group:</div>
+          <div>1</div>
+        </div>
+        <div className="generation-parameter">
+          <div>Group size</div>
+          <div>2</div>
+        </div>
+        <div className="generation-parameter">
           <div>Generation lifetime:</div>
           <div>10 sec</div>
         </div>
