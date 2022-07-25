@@ -15,12 +15,11 @@ body{
     width: 100%;
 }
 .content-block{
-    width: 100%;
     display:flex;
     flex-direction: column;
     align-items: center;
     background-color: rgb(246, 246, 246);
-    margin: 1.5rem;
+    margin: 1.5rem 0;
     padding: 10px;
 }
 .content-block h2{
@@ -46,6 +45,10 @@ body{
 .generation-parameter div:first-child{
     margin-right: 10px;
     font-weight: bold;
+}
+.input-value{
+    text-align: center;
+    width: 40px;
 }
 .generation-parameter-editable{
     display:flex;
@@ -93,11 +96,8 @@ body{
     justify-content: space-evenly;
     padding:10px;
     background-color: rgb(246, 246, 246);
-    margin: 1.5rem;
+    margin: 1.5rem 0;
 }
-/* .select-form-control{
-    background-color: white;
-} */
 .select-form-control h2{
     margin-bottom: 10px;
     margin-top:0px;
@@ -163,4 +163,78 @@ body{
     font-size: 2rem;
     color:red;
     z-index: 1;
+}
+.input-container{
+    display:flex;
+    align-items: center;
+}
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+}
+input[type=range]:focus {
+    outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 0.5rem;
+    cursor: pointer;
+    background: black;
+    border-radius: 3px;
+
+}
+input[type=range]::-webkit-slider-thumb {
+    border: 2px solid white;
+    height:1rem;
+    width: 16px;
+    border-radius: 50%;
+    background: black;
+    cursor: pointer;
+}
+input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 0.5rem;
+    cursor: pointer;
+    background: black;
+    border-radius: 3px;
+}
+input[type=range]::-moz-range-thumb {
+    border: 2px solid white;
+    height:1rem;
+    width: 16px;
+    border-radius: 50%;
+    background: black;
+    cursor: pointer;
+}
+input[type=range]::-moz-focus-outer {
+    border: 0;
+}
+input[type=range]::-ms-track {
+    width: 100%;
+    height: 0.5rem;
+    cursor: pointer;
+    background: black;
+    border-radius: 3px;
+}
+input[type=range]::-ms-fill-lower {
+    background: black;
+    border-radius: 3px;
+}
+input[type=range]::-ms-fill-upper {
+    background: black;
+    border-radius: 3px;
+}
+input[type=range]::-ms-thumb {
+    border: 2px solid white;
+    height:1rem;
+    width: 16px;
+    border-radius: 50%;
+    background: black;
+    cursor: pointer;
+}
+input[type=range]:focus::-ms-fill-lower {
+    background: black;
+}
+input[type=range]:focus::-ms-fill-upper {
+    background: black;
 }

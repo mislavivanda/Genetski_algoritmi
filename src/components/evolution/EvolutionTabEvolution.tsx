@@ -146,13 +146,44 @@ function EvolutionTabEvolution() {
     } else setSelectionDropdownOpen(false)
   }
 
-  const handleGenerationSizeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    return;
+  const handleGenerationSizeChange = (value: number) => {
+    setGenerationSize(value);
+    onEvolutionRestart();
   }
 
-  const handleGroupSizeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    return;
+  const handleGroupSizeChange = (value: number) => {
+    setCarsBatchSize(value);
+    onEvolutionRestart();
   }
+
+  const handleMutationProbabilityChange = (value: number) => {
+    setMutationProbability(value);
+  }
+
+  const handleElitismRateChange = (value: number) => {
+    setLongLivingChampionsPercentage(value);
+  }
+
+  const onCommonStateReset = () => {
+    setGeneration([]);
+    setCarsBatch([]);
+    setCars({});
+    carsRef.current = {};
+    carsLossRef.current = [{}];
+    genomeLossRef.current = [{}];
+    setLossHistory([]);
+    setAvgLossHistory([]);
+    setBestGenome(null);
+    setMinLoss(null);
+  };
+
+  const onEvolutionRestart = () => {
+    cancelBatchTimer();
+    onCommonStateReset();
+    setWorldIndex(worldIndex + 1);
+    setGenerationIndex(0);
+    setCarsBatchIndex(null);
+  };
 
   const onCarLossUpdate = (licensePlate: CarLicencePlateType, loss: number) => {
     if (generationIndex === null) {
@@ -590,44 +621,76 @@ function EvolutionTabEvolution() {
         <div className="parameters-container editable">
           <div className="generation-parameter-editable">
             <div className="generation-parameter">
-              <div>Generation size:</div>
-              <div>{generationSize}</div>
+              <div><span>Generation size:</span></div>
+              <div className="input-value">{generationSize}</div>
             </div>
-            <input
-              type="range"
-              step={1}
-              value={generationSize}
-              min={1}
-              max={150}
-              onChange={handleGenerationSizeChange}
-            />
+            <div className="input-container">
+              <input
+                type="range"
+                step={1}
+                value={generationSize}
+                min={1}
+                max={150}
+                onChange={(event) => event.target.value && setGenerationSize(parseInt(event.target.value))} //mijenja kako se mijenja vrijednost
+                onMouseUp={() => handleGenerationSizeChange(generationSize)} //poziv na zavrsnoj/krajnjoj postavljenoj vrijednosti
+              />
+            </div>
           </div>
           <div className="generation-parameter-editable">
             <div className="generation-parameter">
               <div>Group size:</div>
-              <div>{carsBatchSize}</div>
+              <div className="input-value">{carsBatchSize}</div>
             </div>
-            <input
-              type="range"
-              step={1}
-              value={carsBatchSize}
-              min={1}
-              max={generationSize}
-              onChange={handleGroupSizeChange}
-            />
+            <div className="input-container">
+              <input
+                type="range"
+                step={1}
+                value={carsBatchSize}
+                min={1}
+                max={10}
+                onChange={(event) => event.target.value && setCarsBatchSize(parseInt(event.target.value))}
+                onMouseUp={() => handleGroupSizeChange(carsBatchSize)}
+              />
+            </div>
           </div>
         </div>
       </div>
       <div className="content-block">
         <h2>Algorithm parameters</h2>
         <div className="parameters-container">
-          <div className="generation-parameter">
-            <div>Mutation probability:</div>
-            <div>{`${mutationProbability * 100}%`}</div>
+          <div className="generation-parameter-editable">
+            <div className="generation-parameter">
+              <div>Mutation probability:</div>
+              <div className="input-value">{`${Math.floor(mutationProbability * 100)}%`}</div>
+            </div>
+            <div className="input-container">
+              <input
+                type="range"
+                step={1}
+                value={Math.floor(mutationProbability * 100)}
+                min={1}
+                max={20}
+                onChange={(event) => event.target.value && setMutationProbability(Math.round(parseFloat(event.target.value)) / 100)}
+                onMouseUp={() => handleMutationProbabilityChange(mutationProbability)}
+              />
+            </div>
           </div>
-          <div className="generation-parameter">
-            <div>Elitism rate:</div>
-            <div>{`${longLivingChampionsPercentage}%`}</div>
+          <div className="generation-parameter-editable">
+            <div className="generation-parameter">
+              <div>Elitism rate:</div>
+              <div className="input-value">{`${longLivingChampionsPercentage}%`}</div>
+            </div>
+            <div className="input-container">
+              <input
+                type="range"
+                step={1}
+                value={longLivingChampionsPercentage}
+                min={1}
+                max={20}
+                onChange={(event) => event.target.value && setLongLivingChampionsPercentage(Math.round(parseFloat(event.target.value) * 100) / 100)}
+                onMouseUp={() => handleElitismRateChange(longLivingChampionsPercentage / 100)}
+              />
+            </div>
           </div>
           <div className="generation-parameter">
             <div>Time elapsed:</div>
