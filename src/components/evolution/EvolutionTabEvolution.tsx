@@ -37,7 +37,6 @@ const DEFAULT_BATCH_SIZE: number = 2
 const DEFAULT_MUTATION_PROBABILITY: Probability = 0.04
 const DEFAULT_LONG_LIVING_CHAMPIONS_PERCENTAGE: Percentage = 6
 const DEFAULT_GENERATION_LIFETIME: number = 17
-const TRAINED_CAR_GENERATION_LIFETIME: number = DEFAULT_GENERATION_LIFETIME
 const SECOND: number = 1000
 
 const GENERATION_SIZE_URL_PARAM = 'generation'
@@ -55,8 +54,16 @@ type GenomeLossType = Record<GenomeKey, number | null>
 function EvolutionTabEvolution() {
   const { enqueue } = useSnackbar()
 
+  //CUSTOM STATE
   const [isPaused, setIsPaused] = useState<boolean>(false)
   const [updateScene, setUpdateScene] = useState<boolean>(true)
+  const [mutationType, setMutationType] = useState<string>('First mutation')
+  const [selectionType, setSelectionType] = useState<string>('First selection')
+  const [mutationDropdownOpen, setMutationDropdownOpen] = useState<boolean>(false)
+  const [selectionDropdownOpen, setSelectionDropdownOpen] = useState<boolean>(false)
+  //CUSTOM REFS
+  const mutationTypeChevronRef = useRef<HTMLDivElement | null>(null)
+  const selectionTypeChevronRef = useRef<HTMLDivElement | null>(null)
 
   const [performanceBoost, setPerformanceBoost] = useState<boolean>(
     getBooleanSearchParam(PERFORMANCE_BOOST_URL_PARAM, DEFAULT_PERFORMANCE_BOOST)
@@ -107,6 +114,45 @@ function EvolutionTabEvolution() {
   const carsBatchesTotal: number = Math.ceil(Object.keys(cars).length / carsBatchSize) //SVAKU GENERACIJU PODIJELIMO U GRUPE/BATCHEVE -> NPR GENERACIJA IMA 100 AUTA -> TESTIRAMO 2 AUTA ODJEDNOM -> 50 BATCHEVA
   const batchVersion = generateWorldVersion(generationIndex, carsBatchIndex)
   const generationLifetimeMs = generationLifetime * SECOND
+
+  //CUSTOM METHODS
+  const handleMutationTypeChange = (newMutationType: string) => {
+    mutationTypeChevronRef.current?.classList.remove('chevron-icon-active')
+    setMutationDropdownOpen(false)
+    if (newMutationType !== mutationType) {
+      setMutationType(newMutationType);
+    }
+  }
+
+  const handleSelectionTypeChange = (newSelectionType: string) => {
+    selectionTypeChevronRef.current?.classList.remove('chevron-right-active')
+    setSelectionDropdownOpen(false)
+    if (newSelectionType !== selectionType) {
+      setSelectionType(newSelectionType)
+    }
+  }
+
+  const handleMutationTypeChevronClick = () => {
+    mutationTypeChevronRef.current?.classList.toggle('chevron-icon-active')
+    if (mutationTypeChevronRef.current?.classList.contains('chevron-icon-active')) {
+      setMutationDropdownOpen(true)
+    } else setMutationDropdownOpen(false)
+  }
+
+  const handleSelectionTypeChevronClick = () => {
+    selectionTypeChevronRef.current?.classList.toggle('chevron-icon-active')
+    if (selectionTypeChevronRef.current?.classList.contains('chevron-icon-active')) {
+      setSelectionDropdownOpen(true)
+    } else setSelectionDropdownOpen(false)
+  }
+
+  const handleGenerationSizeChange = (event: React.FormEvent<HTMLInputElement>) => {
+    return;
+  }
+
+  const handleGroupSizeChange = (event: React.FormEvent<HTMLInputElement>) => {
+    return;
+  }
 
   const onCarLossUpdate = (licensePlate: CarLicencePlateType, loss: number) => {
     if (generationIndex === null) {
@@ -533,20 +579,42 @@ function EvolutionTabEvolution() {
             <div>{generationIndex !== null ? generationIndex + 1 : null}</div>
           </div>
           <div className="generation-parameter">
-            <div>Generation size:</div>
-            <div>{generationSize}</div>
-          </div>
-          <div className="generation-parameter">
             <div>Group:</div>
             <div>{`${carsBatchIndex !== null ? carsBatchIndex + 1 : null}/${carsBatchesTotal}`}</div>
           </div>
           <div className="generation-parameter">
-            <div>Group size</div>
-            <div>{carsBatchSize}</div>
-          </div>
-          <div className="generation-parameter">
             <div>Group lifetime left:</div>
             <div><Timer timeout={generationLifetimeMs} version={batchVersion} /></div>
+          </div>
+        </div>
+        <div className="parameters-container editable">
+          <div className="generation-parameter-editable">
+            <div className="generation-parameter">
+              <div>Generation size:</div>
+              <div>{generationSize}</div>
+            </div>
+            <input
+              type="range"
+              step={1}
+              value={generationSize}
+              min={1}
+              max={150}
+              onChange={handleGenerationSizeChange}
+            />
+          </div>
+          <div className="generation-parameter-editable">
+            <div className="generation-parameter">
+              <div>Group size:</div>
+              <div>{carsBatchSize}</div>
+            </div>
+            <input
+              type="range"
+              step={1}
+              value={carsBatchSize}
+              min={1}
+              max={generationSize}
+              onChange={handleGroupSizeChange}
+            />
           </div>
         </div>
       </div>
@@ -571,8 +639,8 @@ function EvolutionTabEvolution() {
         <div className="select-form-control">
           <h2>Mutation type</h2>
           <div className="select-container">
-            <span id="mutation-select-value">First mutation</span>
-            <div id="mutation-chevron-right">
+            <span>First mutation</span>
+            <div ref={mutationTypeChevronRef} className="chevron-icon" onClick={handleMutationTypeChevronClick}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={24}
@@ -587,18 +655,18 @@ function EvolutionTabEvolution() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
-            <div id="mutation-select-dropdown" className="select-dropdown">
-              <div className="select-dropdown-item">First mutation</div>
-              <div className="select-dropdown-item">Second mutation</div>
-              <div className="select-dropdown-item">Third mutation</div>
+            <div className="select-dropdown" style={{ opacity: (mutationDropdownOpen) ? 1 : 0 }}>
+              <div onClick={() => handleMutationTypeChange('First mutation')} className="select-dropdown-item">First mutation</div>
+              <div onClick={() => handleMutationTypeChange('Second mutation')} className="select-dropdown-item">Second mutation</div>
+              <div onClick={() => handleMutationTypeChange('Third mutation')} className="select-dropdown-item">Third mutation</div>
             </div>
           </div>
         </div>
         <div className="select-form-control">
           <h2>Selection type</h2>
           <div className="select-container">
-            <span id="mutation-select-value">First selection</span>
-            <div id="mutation-chevron-right">
+            <span>First selection</span>
+            <div ref={selectionTypeChevronRef} className="chevron-icon" onClick={handleSelectionTypeChevronClick}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={24}
@@ -613,10 +681,10 @@ function EvolutionTabEvolution() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
-            <div id="mutation-select-dropdown" className="select-dropdown">
-              <div className="select-dropdown-item">First selection</div>
-              <div className="select-dropdown-item">Second selection</div>
-              <div className="select-dropdown-item">Third selection</div>
+            <div className="select-dropdown" style={{ opacity: (selectionDropdownOpen) ? 1 : 0 }}>
+              <div onClick={() => handleSelectionTypeChange('First selection')} className="select-dropdown-item">First selection</div>
+              <div onClick={() => handleSelectionTypeChange('Second selection')} className="select-dropdown-item">Second selection</div>
+              <div onClick={() => handleSelectionTypeChange('Third selection')} className="select-dropdown-item">Third selection</div>
             </div>
           </div>
         </div>
@@ -625,7 +693,7 @@ function EvolutionTabEvolution() {
         <h2>Best car from generation</h2>
         <div className="car-parameter-container">
           <h3>Car genome</h3>
-          <code >{(bestGenome || []).join(' ')}</code>
+          <code >{(bestGenome) ? bestGenome.join(' ') : 'Not yet determined'}</code>
           <div className="footer">
             <div className="parameter">
               <div>Number of genes:</div>
@@ -643,7 +711,7 @@ function EvolutionTabEvolution() {
         </div>
         <div className="car-parameter-container">
           <h3>Engine formula coefficents</h3>
-          <code>{(decodeGenome((bestGenome) ? bestGenome : [])?.engineFormulaCoefficients || []).map((coefficient: number) => formatCoefficient(coefficient, true)).join(', ')}</code>
+          <code>{(bestGenome) ? decodeGenome((bestGenome)).engineFormulaCoefficients.map((coefficient: number) => formatCoefficient(coefficient, true)).join(', ') : 'Not yet determined'}</code>
           <div className="footer">
             <div className="parameter">
               <div>
@@ -655,7 +723,7 @@ function EvolutionTabEvolution() {
         </div>
         <div className="car-parameter-container">
           <h3>Wheel formula coefficents</h3>
-          <code id="wheel-formula">{(decodeGenome((bestGenome) ? bestGenome : [])?.wheelsFormulaCoefficients || []).map((coefficient: number) => formatCoefficient(coefficient, true)).join(', ')}</code>
+          <code>{(bestGenome) ? decodeGenome((bestGenome)).wheelsFormulaCoefficients.map((coefficient: number) => formatCoefficient(coefficient, true)).join(', ') : 'Not yet determined'}</code>
           <div className="footer">
             <div className="parameter">
               <div>
