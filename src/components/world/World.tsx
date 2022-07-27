@@ -15,7 +15,6 @@ import { getSearchParam } from '../../utils/url'
 
 type WorldProps = {
   children: React.ReactNode
-  updateScene: boolean
   withJoystickControl?: boolean
   withKeyboardControl?: boolean
   version?: string
@@ -39,7 +38,6 @@ const STAT_SEARCH_PARAM_NAME = 'debug'
 function World(props: WorldProps) {
   const {
     children,
-    updateScene,
     withJoystickControl = false,
     withKeyboardControl = false,
     version = '0',
@@ -94,14 +92,6 @@ function World(props: WorldProps) {
   return (
     <div style={{ position: 'relative' }}>
       {preLoader}
-      {!updateScene ? (
-        <div
-          className="pause-info-panel"
-          style={{ height: WORLD_CONTAINER_HEIGHT, lineHeight: `${WORLD_CONTAINER_HEIGHT}px` }}
-        >
-          PAUSED
-        </div>
-      ) : null}
       <div style={{ height: WORLD_CONTAINER_HEIGHT }}>
         <Canvas shadows key={version}>
           <PerspectiveCamera makeDefault fov={cameraFov} position={[-20, 20, 0]} />

@@ -32,11 +32,11 @@ import { DynamicCarsPosition } from '../world/constants/cars'
 import { DYNAMIC_CARS_POSITION_FRONT } from '../world/constants/cars'
 //EVOLUTION PARAMS
 const DEFAULT_PERFORMANCE_BOOST: boolean = false
-const DEFAULT_GENERATION_SIZE: number = 100
+const DEFAULT_GENERATION_SIZE: number = 2
 const DEFAULT_BATCH_SIZE: number = 2
 const DEFAULT_MUTATION_PROBABILITY: Probability = 0.04
 const DEFAULT_LONG_LIVING_CHAMPIONS_PERCENTAGE: Percentage = 6
-const DEFAULT_GENERATION_LIFETIME: number = 17
+const DEFAULT_GENERATION_LIFETIME: number = 10
 const SECOND: number = 1000
 
 const GENERATION_SIZE_URL_PARAM = 'generation'
@@ -55,10 +55,8 @@ function EvolutionTabEvolution() {
   const { enqueue } = useSnackbar()
 
   //CUSTOM STATE
-  const [isPaused, setIsPaused] = useState<boolean>(false)
-  const [updateScene, setUpdateScene] = useState<boolean>(true)
-  const [mutationType, setMutationType] = useState<string>('First mutation')
-  const [selectionType, setSelectionType] = useState<string>('First selection')
+  const [mutationType, setMutationType] = useState<string>('Bit flip')
+  const [selectionType, setSelectionType] = useState<string>('Random weight')
   const [mutationDropdownOpen, setMutationDropdownOpen] = useState<boolean>(false)
   const [selectionDropdownOpen, setSelectionDropdownOpen] = useState<boolean>(false)
   //CUSTOM REFS
@@ -185,6 +183,8 @@ function EvolutionTabEvolution() {
     setCarsBatchIndex(null);
   };
 
+  //POZIV SVAKIH 100ms u onMove metodi nakon racunanja lossa za pojedini auto
+  //licensePlate identifivra auto
   const onCarLossUpdate = (licensePlate: CarLicencePlateType, loss: number) => {
     if (generationIndex === null) {
       return
@@ -204,7 +204,7 @@ function EvolutionTabEvolution() {
       const carGenomeIndex = carsRef.current[licensePlate].genomeIndex
       const carGenome: Genome = generation[carGenomeIndex]
       const carGenomeKey: GenomeKey = carGenome.join('')
-      genomeLossRef.current[generationIndex][carGenomeKey] = loss
+      genomeLossRef.current[generationIndex][carGenomeKey] = loss //pohrani uzracunati loss za zadani automobil
     }
   }
 
@@ -311,6 +311,7 @@ function EvolutionTabEvolution() {
     setAvgLossHistory(newAvgLossHistory)
   }
 
+  // POZIV ZA GENOME SVAKOG AUTA IZ GENERACIJE UNUTAR select() METODE
   const carFitnessFunction =
     (generationIndex: number) =>
       (genome: Genome): number => {
@@ -396,6 +397,7 @@ function EvolutionTabEvolution() {
   }
 
   const createFirstGeneration = () => {
+    //POSTAVI RANDOM VRIJEDNOSTI ZA SVAKI BIT GENOMA
     if (generationIndex === null) {
       return
     }
@@ -427,9 +429,12 @@ function EvolutionTabEvolution() {
     }
     logger.info(`Mate generation #${generationIndex}`)
     try {
+      //SELECT -> SELEKCIJA U MATING POOL + MUTACIJA
       const newGeneration = select(generation, carFitnessFunction(generationIndex - 1), {
         mutationProbability,
         longLivingChampionsPercentage: longLivingChampionsPercentage,
+        selectionType: selectionType,
+        mutationType: mutationType,
       })
       setGeneration(newGeneration)
       saveGenerationToStorage({
@@ -544,13 +549,12 @@ function EvolutionTabEvolution() {
   useEffect(() => {
     //PROMJENA GENERACIJE -> KRIZANJE
     console.log('Generation index use efect')
-    //if(!isPaused) {
     if (generationIndex === 0 || generationIndex === restoredFromGenerationIndex) {
       createFirstGeneration()
     } else {
+      //krizaj trenutnu generaciju
       mateExistingGeneration()
     }
-    //}
   }, [generationIndex, worldIndex])
 
   // Once generation is changed we need to create cars.
@@ -564,20 +568,13 @@ function EvolutionTabEvolution() {
   useEffect(() => {
     // NOVA GRUPA AUTA IZ GENERACIJE -> GENEIRAJ NOVU GRUPU
     console.log('Cars batch useeffect')
-    if (updateScene) {
-      generateNextCarsBatch()
-    }
+    generateNextCarsBatch()
   }, [carsBatchIndex])
 
   // Once the new cars batch is created we need to start generation timer.
   useEffect(() => {
     //ODBROJAVANJE VREMENA KOJE DAJEMO AUTIMA IZ GRUPE DA EVOLUIRAJU I TRENIRAJU SE
-    if (updateScene) {
-      countDownBatchLifetime(onBatchLifetimeEnd)
-    }
-    if (isPaused) {
-      setUpdateScene(false)
-    }
+    countDownBatchLifetime(onBatchLifetimeEnd)
     return () => {
       //use effect clenaup timer
       cancelBatchTimer()
@@ -586,22 +583,15 @@ function EvolutionTabEvolution() {
 
   return (
     <Block>
-      <World version={batchVersion} performanceBoost={performanceBoost} updateScene={updateScene}>
-        {updateScene ? (
-          <ParkingAutomatic
-            performanceBoost={performanceBoost}
-            cars={carsBatch} //rerender kod promjene novog batcha automobila
-            withVisibleSensors
-            withLabels
-            carsPosition={dynamicCarsPosition} //pocetna poizicija kretajucih auta
-          />
-        ) : null}
+      <World version={batchVersion} performanceBoost={performanceBoost}>
+        <ParkingAutomatic
+          performanceBoost={performanceBoost}
+          cars={carsBatch} //rerender kod promjene novog batcha automobila
+          withVisibleSensors
+          withLabels
+          carsPosition={dynamicCarsPosition} //pocetna poizicija kretajucih auta
+        />
       </World>
-      <div style={{ textAlign: 'center' }}>
-        <div className="button" onClick={() => setIsPaused(!isPaused)}>
-          {isPaused ? 'PLAY' : 'PAUSE'}
-        </div>
-      </div>
       <div className="content-block">
         <h2>Generation parameters</h2>
         <div className="parameters-container">
@@ -702,7 +692,7 @@ function EvolutionTabEvolution() {
         <div className="select-form-control">
           <h2>Mutation type</h2>
           <div className="select-container">
-            <span>First mutation</span>
+            <span>{mutationType}</span>
             <div ref={mutationTypeChevronRef} className="chevron-icon" onClick={handleMutationTypeChevronClick}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -719,16 +709,16 @@ function EvolutionTabEvolution() {
               </svg>
             </div>
             <div className="select-dropdown" style={{ opacity: (mutationDropdownOpen) ? 1 : 0 }}>
-              <div onClick={() => handleMutationTypeChange('First mutation')} className="select-dropdown-item">First mutation</div>
-              <div onClick={() => handleMutationTypeChange('Second mutation')} className="select-dropdown-item">Second mutation</div>
-              <div onClick={() => handleMutationTypeChange('Third mutation')} className="select-dropdown-item">Third mutation</div>
+              <div onClick={() => handleMutationTypeChange('Bit flip')} className="select-dropdown-item">Bit flip</div>
+              <div onClick={() => handleMutationTypeChange('Swap')} className="select-dropdown-item">Swap</div>
+              <div onClick={() => handleMutationTypeChange('Third')} className="select-dropdown-item">Third</div>
             </div>
           </div>
         </div>
         <div className="select-form-control">
           <h2>Selection type</h2>
           <div className="select-container">
-            <span>First selection</span>
+            <span>{selectionType}</span>
             <div ref={selectionTypeChevronRef} className="chevron-icon" onClick={handleSelectionTypeChevronClick}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -745,9 +735,10 @@ function EvolutionTabEvolution() {
               </svg>
             </div>
             <div className="select-dropdown" style={{ opacity: (selectionDropdownOpen) ? 1 : 0 }}>
-              <div onClick={() => handleSelectionTypeChange('First selection')} className="select-dropdown-item">First selection</div>
-              <div onClick={() => handleSelectionTypeChange('Second selection')} className="select-dropdown-item">Second selection</div>
-              <div onClick={() => handleSelectionTypeChange('Third selection')} className="select-dropdown-item">Third selection</div>
+              <div onClick={() => handleSelectionTypeChange('Random weight')} className="select-dropdown-item">Random weight</div>
+              <div onClick={() => handleSelectionTypeChange('Roullete wheel')} className="select-dropdown-item">Roullete wheel</div>
+              <div onClick={() => handleSelectionTypeChange('Rank selection')} className="select-dropdown-item">Rank selection</div>
+              <div onClick={() => handleSelectionTypeChange('Tournament')} className="select-dropdown-item">Tournament</div>
             </div>
           </div>
         </div>

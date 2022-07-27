@@ -30,6 +30,7 @@ type GenerationToCarsProps = {
   onLossUpdate?: (licencePlate: CarLicencePlateType, loss: number) => void
 }
 
+//PRETVORBA GENOMA U VIDLJIVE MODELE AUTA, SVAKI AUTO IDENTIFICIRAN REGISTRACIJOM
 export const generationToCars = (props: GenerationToCarsProps): CarsType => {
   const { generationIndex, generation, onLossUpdate = () => {} } = props
   const cars: CarsType = {}

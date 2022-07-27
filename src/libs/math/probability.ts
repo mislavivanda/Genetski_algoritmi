@@ -1,3 +1,4 @@
+//DEFAULTNA SELEKCIJA
 // Picks the random item based on its weight.
 // The items with higher weight will be picked more often.
 export const weightedRandom = <T>(items: T[], weights: number[]): { item: T; index: number } => {
