@@ -32,7 +32,7 @@ import { DynamicCarsPosition } from '../world/constants/cars'
 import { DYNAMIC_CARS_POSITION_FRONT } from '../world/constants/cars'
 //EVOLUTION PARAMS
 const DEFAULT_PERFORMANCE_BOOST: boolean = false
-const DEFAULT_GENERATION_SIZE: number = 2
+const DEFAULT_GENERATION_SIZE: number = 10
 const DEFAULT_BATCH_SIZE: number = 2
 const DEFAULT_MUTATION_PROBABILITY: Probability = 0.04
 const DEFAULT_LONG_LIVING_CHAMPIONS_PERCENTAGE: Percentage = 6
@@ -123,7 +123,7 @@ function EvolutionTabEvolution() {
   }
 
   const handleSelectionTypeChange = (newSelectionType: string) => {
-    selectionTypeChevronRef.current?.classList.remove('chevron-right-active')
+    selectionTypeChevronRef.current?.classList.remove('chevron-icon-active')
     setSelectionDropdownOpen(false)
     if (newSelectionType !== selectionType) {
       setSelectionType(newSelectionType)
@@ -619,8 +619,8 @@ function EvolutionTabEvolution() {
                 type="range"
                 step={1}
                 value={generationSize}
-                min={1}
-                max={150}
+                min={10}
+                max={100}
                 onChange={(event) => event.target.value && setGenerationSize(parseInt(event.target.value))} //mijenja kako se mijenja vrijednost
                 onMouseUp={() => handleGenerationSizeChange(generationSize)} //poziv na zavrsnoj/krajnjoj postavljenoj vrijednosti
               />
@@ -711,7 +711,7 @@ function EvolutionTabEvolution() {
             <div className="select-dropdown" style={{ opacity: (mutationDropdownOpen) ? 1 : 0 }}>
               <div onClick={() => handleMutationTypeChange('Bit flip')} className="select-dropdown-item">Bit flip</div>
               <div onClick={() => handleMutationTypeChange('Swap')} className="select-dropdown-item">Swap</div>
-              <div onClick={() => handleMutationTypeChange('Third')} className="select-dropdown-item">Third</div>
+              <div onClick={() => handleMutationTypeChange('Inversion')} className="select-dropdown-item">Inversion</div>
             </div>
           </div>
         </div>

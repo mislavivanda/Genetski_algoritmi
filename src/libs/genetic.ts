@@ -30,6 +30,23 @@ export type Percentage = number
 //DEFAULTNA MUTACIJA
 function mutate(genome: Genome, mutationProbability: Probability, mutationType: string): Genome {
   // Conceive children.
+  if (mutationType === 'Inversion') {
+    for (let geneIndex = 0; geneIndex < genome.length; geneIndex += 9) {
+      if (Math.random() < mutationProbability) {
+        for (let swapIndex = 0; swapIndex < 4; swapIndex++) {
+          //INVERTIRAJ CIJELU GRUPU OD 9 BITOVA
+          //1. prolaz -> mijenjamo 0 i 8
+          //2. prolaz -> mijenjamo 1 i 7
+          //3. prolaz -> mijenjamo 2 i 6
+          //4. prolaz mijenjamo 3 i 5
+          let gene = genome[geneIndex + swapIndex]
+          genome[geneIndex + swapIndex] = genome[geneIndex + (8 - swapIndex)]
+          genome[geneIndex + (8 - swapIndex)] = gene
+        }
+      }
+    }
+    return genome
+  }
   for (let geneIndex = 0; geneIndex < genome.length; geneIndex += 1) {
     if (mutationType === 'Bit flip') {
       const gene: Gene = genome[geneIndex]
@@ -122,31 +139,36 @@ export function select(generation: Generation, fitness: FitnessFunction, options
     return i
   }
   let relativeFitness: any = []
+  let totalFitness = 0
   let fitnessList: any = []
   if (selectionType === 'Roullete wheel') {
-    let totalFitness = 0.0
     generation.forEach((genome) => {
       totalFitness += fitness(genome)
     })
     generation.forEach((genome) => {
-      relativeFitness.push(fitness(genome))
+      relativeFitness.push(fitness(genome) / totalFitness)
     })
     for (let i = 0; i < relativeFitness.length; i++) {
-      for (let j = 0; j < i; j++) relativeFitness[j] += relativeFitness[j]
+      for (let j = 0; j < i; j++) relativeFitness[i] += relativeFitness[j]
     }
   }
   //RoulleteWheel Selection
 
   //Rank Selection
   let indexList: any = []
-  const FindParentIndexRankSelection = (relativeFitness: any, indexList: any, randomNumber: any) => {
+  let rankList: any = []
+  const FindParentIndexRankSelection = (rankList: any, indexList: any, randomNumber: any) => {
     let i = 0
-    while (randomNumber > relativeFitness[i]) i += 1
+    while (randomNumber > rankList[i]) i += 1
     return indexList[i]
   }
   if (selectionType === 'Rank selection') {
     generation.forEach((genome) => {
+      totalFitness += fitness(genome)
       fitnessList.push(fitness(genome))
+    })
+    generation.forEach((genome) => {
+      relativeFitness.push(fitness(genome) / totalFitness)
     })
     let fitnessListCopy = [...fitnessList]
     fitnessList.sort()
@@ -154,14 +176,17 @@ export function select(generation: Generation, fitness: FitnessFunction, options
       let tempIndex = fitnessListCopy.indexOf(fitness)
       indexList.push(tempIndex)
     })
-    let rankList: any = []
-    let newFitness = 0.0
+    let newFitness = 0
     indexList.forEach(() => {
-      newFitness += 1.0
+      newFitness += 1
       rankList.push(newFitness)
     })
-    for (let i = 0; i < relativeFitness.length; i++) {
-      for (let j = 0; j < i; j++) rankList[j] += rankList[j]
+    for (let i = 1; i < rankList.length; i++) {
+      rankList[i] += rankList[i - 1]
+    }
+    let rankSum = (generation.length / 2) * (generation.length + 1)
+    for (let i = 0; i < rankList.length; i++) {
+      rankList[i] /= rankSum
     }
   }
   //Rank Selection
@@ -221,18 +246,13 @@ export function select(generation: Generation, fitness: FitnessFunction, options
 
       //RouletteWheel Selection
       if (selectionType === 'Roullete wheel') {
-        //console.log('Inside roulletee')
-        //console.log(!father || !mother || fatherGenomeIndex === matherGenomeIndex)
+        console.log('Inside roulletee')
         let randomNumber = Math.random()
         fatherGenomeIndex = FindParentIndex(relativeFitness, randomNumber)
         father = generation[fatherGenomeIndex]
-        console.log(father)
-        console.log(fatherGenomeIndex)
         randomNumber = Math.random()
         matherGenomeIndex = FindParentIndex(relativeFitness, randomNumber)
         mother = generation[matherGenomeIndex]
-        console.log(mother)
-        console.log(matherGenomeIndex)
       }
       //RouletteWheel Selection
 
@@ -240,10 +260,10 @@ export function select(generation: Generation, fitness: FitnessFunction, options
       if (selectionType === 'Rank selection') {
         console.log('Inside rank')
         let randomNumber = Math.random()
-        fatherGenomeIndex = FindParentIndexRankSelection(relativeFitness, indexList, randomNumber)
+        fatherGenomeIndex = FindParentIndexRankSelection(rankList, indexList, randomNumber)
         father = fatherGenomeIndex ? generation[fatherGenomeIndex] : null
         randomNumber = Math.random()
-        matherGenomeIndex = FindParentIndexRankSelection(relativeFitness, indexList, randomNumber)
+        matherGenomeIndex = FindParentIndexRankSelection(rankList, indexList, randomNumber)
         mother = matherGenomeIndex ? generation[matherGenomeIndex] : null
       }
       //Rank Selection
@@ -258,12 +278,12 @@ export function select(generation: Generation, fitness: FitnessFunction, options
           randomList.forEach((random) => {
             valueList.push(fitnessList[random])
           })
-          let maxIndex = randomList.indexOf(Math.max(valueList))
+          let maxIndex = valueList.indexOf(Math.max(...valueList))
           if (i === 0) {
-            fatherGenomeIndex = maxIndex
+            fatherGenomeIndex = randomList[maxIndex]
             father = generation[fatherGenomeIndex]
           } else {
-            matherGenomeIndex = maxIndex
+            matherGenomeIndex = randomList[maxIndex]
             mother = generation[matherGenomeIndex]
           }
         }
