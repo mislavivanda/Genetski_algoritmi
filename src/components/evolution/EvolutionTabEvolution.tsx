@@ -769,8 +769,7 @@ function EvolutionTabEvolution() {
           <div className="footer">
             <div className="parameter">
               <div>
-                Coefficients for engine multivariate linear formula. Given in order x<sub>8</sub>, x<sub>7</sub>, ...
-                , x<sub>0</sub>
+                Coefficients for engine multivariate linear formula.
               </div>
             </div>
           </div>
@@ -781,8 +780,7 @@ function EvolutionTabEvolution() {
           <div className="footer">
             <div className="parameter">
               <div>
-                Coefficients for engine multivariate linear formula. Given in order x<sub>8</sub>, x<sub>7</sub>, ...
-                , x<sub>0</sub>
+                Coefficients for engine multivariate linear formula.
               </div>
             </div>
           </div>

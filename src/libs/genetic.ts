@@ -148,8 +148,8 @@ export function select(generation: Generation, fitness: FitnessFunction, options
     generation.forEach((genome) => {
       relativeFitness.push(fitness(genome) / totalFitness)
     })
-    for (let i = 0; i < relativeFitness.length; i++) {
-      for (let j = 0; j < i; j++) relativeFitness[i] += relativeFitness[j]
+    for (let i = 1; i < relativeFitness.length; i++) {
+      relativeFitness[i] += relativeFitness[i - 1]
     }
   }
   //RoulleteWheel Selection
